@@ -25,32 +25,36 @@ export async function POST(req) {
       department,
     } = await req.json();
 
-    const [userRows] = await db.query(
+    // Check if username exists
+    const userCheck = await db.query(
       `SELECT * FROM users WHERE username = $1`,
       [username]
     );
-    if (userRows.length > 0) {
+    if (userCheck.rows.length > 0) {
       return NextResponse.json({ message: "Username already exists" }, { status: 400 });
     }
 
-    const [rollRows] = await db.query(
+    // Check if roll number exists
+    const rollCheck = await db.query(
       `SELECT * FROM students WHERE rollnumber = $1`,
       [rollNumber]
     );
-    if (rollRows.length > 0) {
+    if (rollCheck.rows.length > 0) {
       return NextResponse.json({ message: "Roll Number already exists" }, { status: 400 });
     }
 
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const [userResult] = await db.query(
+    // Insert user
+    const userInsert = await db.query(
       `INSERT INTO users (username, passwordhash, role) VALUES ($1, $2, $3) RETURNING userid`,
       [username, hashedPassword, "Student"]
     );
 
-    const userId = userResult[0].userid;
+    const userId = userInsert.rows[0].userid;
 
-  
+    // Insert student details
     await db.query(
       `INSERT INTO students (
         userid, rollnumber, firstname, lastname, dateofbirth, age, gender, 
@@ -86,6 +90,6 @@ export async function POST(req) {
 
   } catch (err) {
     console.error("Registration Error:", err);
-    return NextResponse.json({ message: "Server Error" }, { status: 500 });
+    return NextResponse.json({ message: "Server Error", error: err.message }, { status: 500 });
   }
 }

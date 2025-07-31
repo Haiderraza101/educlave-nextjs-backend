@@ -6,7 +6,7 @@ export async function GET(request, { params }) {
   const courseid = params.courseid;
 
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       `
       SELECT quiznumber, obtainedmarks, totalmarks 
       FROM quizzes 
@@ -15,9 +15,9 @@ export async function GET(request, { params }) {
       [studentid, courseid]
     );
 
-    return NextResponse.json(rows, { status: 200 });
+    return NextResponse.json(result.rows, { status: 200 });
   } catch (err) {
-    console.error("Error fetching Quizzes", err);
+    console.error("Error fetching Quizzes:", err);
     return NextResponse.json(
       { error: "Server Error in getting Quiz Marks" },
       { status: 500 }

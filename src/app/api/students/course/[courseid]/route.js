@@ -5,7 +5,7 @@ export async function GET(request, { params }) {
   const courseid = params.courseid;
 
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       `
       SELECT 
         s.studentid, 
@@ -20,6 +20,8 @@ export async function GET(request, { params }) {
       `,
       [courseid]
     );
+
+    const rows = result.rows;
 
     return NextResponse.json(rows, {
       status: 200,
