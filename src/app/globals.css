@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+.input {
+  @apply p-3 border rounded-lg w-full focus:outline-none focus:border-orange-500;
+}
