@@ -1,4 +1,4 @@
-import db from '../../../../../lib/db'
+import db from '../../../../../lib/db';
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 
@@ -21,19 +21,20 @@ export async function POST(req) {
       previousExperience,
       department,
     } = data;
-    const [userRows] = await db.query(
-      "SELECT * FROM users WHERE username = ?",
+
+    const userCheck = await db.query(
+      "SELECT * FROM users WHERE username = $1",
       [username]
     );
-    if (userRows.length > 0) {
+    if (userCheck.rows.length > 0) {
       return NextResponse.json({ message: "Username already exists" }, { status: 400 });
     }
 
-    const [contactRows] = await db.query(
-      "SELECT * FROM teachers WHERE contactnumber = ? OR email = ?",
+    const contactCheck = await db.query(
+      "SELECT * FROM teachers WHERE contactnumber = $1 OR email = $2",
       [contact, email]
     );
-    if (contactRows.length > 0) {
+    if (contactCheck.rows.length > 0) {
       return NextResponse.json(
         { message: "Contact number or email already exists" },
         { status: 400 }
@@ -42,22 +43,21 @@ export async function POST(req) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const [userResult] = await db.query(
-      "INSERT INTO users (username, passwordhash, role) VALUES (?, ?, ?)",
+    const userInsert = await db.query(
+      "INSERT INTO users (username, passwordhash, role) VALUES ($1, $2, $3) RETURNING userid",
       [username, hashedPassword, "Teacher"]
     );
 
-    const userid = userResult.insertId;
+    const userId = userInsert.rows[0].userid;
 
- 
     await db.query(
       `INSERT INTO teachers (
         userid, firstname, lastname, dateofbirth, age, gender,
         contactnumber, email, address, specialization, qualification,
         previousexperience, department
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
       [
-        userid,
+        userId,
         firstName,
         lastName,
         dob,
@@ -77,6 +77,9 @@ export async function POST(req) {
 
   } catch (err) {
     console.error("Registration Error:", err);
-    return NextResponse.json({ message: "Internal Server Error", error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error", error: err.message },
+      { status: 500 }
+    );
   }
 }

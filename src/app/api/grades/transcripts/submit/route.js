@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import db from '../../../../../../lib/db'
+import db from '../../../../../../lib/db';
 
 export async function POST(request) {
   try {
@@ -13,9 +13,20 @@ export async function POST(request) {
     }
 
     for (const t of transcripts) {
+      const {
+        studentid,
+        courseid,
+        coursecode,
+        coursename,
+        credithours,
+        semester,
+        year,
+        lettergrade
+      } = t;
+
       if (
-        !t.studentid || !t.courseid || !t.coursecode || !t.coursename ||
-        !t.credithours || !t.semester || !t.year || !t.lettergrade
+        !studentid || !courseid || !coursecode || !coursename ||
+        !credithours || !semester || !year || !lettergrade
       ) {
         return NextResponse.json(
           { error: 'Missing required fields in transcript entry' },
@@ -25,21 +36,23 @@ export async function POST(request) {
 
       await db.query(
         `
-        INSERT INTO Transcripts 
-        (studentid, courseid, coursecode, coursename, credithours, semester, year, lettergrade)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE 
-        lettergrade = VALUES(lettergrade)
+        INSERT INTO transcripts (
+          studentid, courseid, coursecode, coursename,
+          credithours, semester, year, lettergrade
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT (studentid, courseid) DO UPDATE SET
+          lettergrade = EXCLUDED.lettergrade
         `,
         [
-          t.studentid,
-          t.courseid,
-          t.coursecode,
-          t.coursename,
-          t.credithours,
-          t.semester,
-          t.year,
-          t.lettergrade,
+          studentid,
+          courseid,
+          coursecode,
+          coursename,
+          credithours,
+          semester,
+          year,
+          lettergrade
         ]
       );
     }

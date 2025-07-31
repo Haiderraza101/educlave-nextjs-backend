@@ -1,17 +1,27 @@
 import { NextResponse } from "next/server";
 import db from '../../../../lib/db';
-export async function GET(){
-  try{
-    const [rows]=await db.query(
+
+export async function GET() {
+  try {
+    const result = await db.query(
       `
-      Select c.*, t.firstname,t.lastname from courses c join teachers t on c.teacherid = t.teacherid `
+      SELECT c.*, t.firstname, t.lastname 
+      FROM courses c 
+      JOIN teachers t ON c.teacherid = t.teacherid
+      `
     );
-    return NextResponse.json(rows);
-  }
-  catch(err){
-    console.error("Error fetching Courses ",err);
-    return NextResponse.json({error:"Internal Server Error",error:err.message},{
-      status:500
-    });
+
+    return NextResponse.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching Courses", err);
+    return NextResponse.json(
+      {
+        error: "Internal Server Error",
+        message: err.message
+      },
+      {
+        status: 500
+      }
+    );
   }
 }

@@ -6,11 +6,11 @@ export async function PATCH(request, { params }) {
   const { courseid } = body;
 
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       `
       UPDATE courses 
-      SET studentid = ?
-      WHERE courseid = ?
+      SET studentid = $1
+      WHERE courseid = $2
       `,
       [null, courseid]
     );

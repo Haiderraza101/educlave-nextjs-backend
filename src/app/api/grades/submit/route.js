@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import db from '../../../../../lib/db'
+import db from '../../../../../lib/db';
 
 export async function POST(request) {
   try {
@@ -36,7 +36,7 @@ export async function POST(request) {
         obtainedgrandtotal,
         lettergrade
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       `,
       [
         studentid,

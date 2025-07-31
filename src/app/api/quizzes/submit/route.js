@@ -6,16 +6,15 @@ export async function POST(request) {
 
   try {
     for (const record of quizzesRecords) {
-      const { studentid, courseid, obtainedmarks, totalmarks, quiznumber } = record;
+      const { studentid, courseid, quiznumber, obtainedmarks, totalmarks } = record;
 
       await db.query(
         `
         INSERT INTO quizzes (studentid, courseid, quiznumber, obtainedmarks, totalmarks)
-        VALUES (?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE 
-          obtainedmarks = VALUES(obtainedmarks),
-          totalmarks = VALUES(totalmarks),
-          quiznumber = VALUES(quiznumber)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (studentid, courseid, quiznumber) DO UPDATE SET 
+          obtainedmarks = EXCLUDED.obtainedmarks,
+          totalmarks = EXCLUDED.totalmarks
         `,
         [studentid, courseid, quiznumber, obtainedmarks, totalmarks]
       );

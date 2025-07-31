@@ -3,7 +3,7 @@ import db from '../../../../../../lib/db';
 
 export async function GET(request, { params }) {
   const { courseid } = params;
-  
+
   if (!courseid || isNaN(courseid)) {
     return NextResponse.json(
       { error: 'Invalid course ID' },
@@ -12,11 +12,11 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const [rows] = await db.query(
+    const { rows } = await db.query(
       `
       SELECT studentid, obtainedgrandtotal, lettergrade 
       FROM grades 
-      WHERE courseid = ?
+      WHERE courseid = $1
       `,
       [courseid]
     );

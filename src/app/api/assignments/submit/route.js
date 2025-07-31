@@ -11,11 +11,10 @@ export async function POST(request) {
       await db.query(
         `
         INSERT INTO assignments (studentid, courseid, assignmentnumber, obtainedmarks, totalmarks)
-        VALUES (?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE 
-          obtainedmarks = VALUES(obtainedmarks),
-          totalmarks = VALUES(totalmarks),
-          assignmentnumber = VALUES(assignmentnumber)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (studentid, courseid, assignmentnumber) DO UPDATE SET
+          obtainedmarks = EXCLUDED.obtainedmarks,
+          totalmarks = EXCLUDED.totalmarks
         `,
         [studentid, courseid, assignmentnumber, obtainedmarks, totalmarks]
       );

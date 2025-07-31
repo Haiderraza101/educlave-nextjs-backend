@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import db from '../../../../../lib/db'
+import db from '../../../../../lib/db';
 
 export async function POST(request) {
   try {
@@ -10,6 +10,7 @@ export async function POST(request) {
 
     for (const record of finalRecords) {
       const { studentid, courseid, obtainedmarks, totalmarks } = record;
+
       if (
         !studentid || !courseid ||
         obtainedmarks == null || totalmarks == null ||
@@ -21,10 +22,10 @@ export async function POST(request) {
       await db.query(
         `
         INSERT INTO finals (studentid, courseid, obtainedmarks, totalmarks)
-        VALUES (?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE 
-          obtainedmarks = VALUES(obtainedmarks),
-          totalmarks = VALUES(totalmarks)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (studentid, courseid) DO UPDATE
+        SET obtainedmarks = EXCLUDED.obtainedmarks,
+            totalmarks = EXCLUDED.totalmarks
         `,
         [studentid, courseid, obtainedmarks, totalmarks]
       );

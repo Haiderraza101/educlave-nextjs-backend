@@ -3,15 +3,14 @@ import db from '../../../../../../lib/db';
 
 export async function GET(req, { params }) {
   const { studentid } = params;
+
   try {
-    const [rows] = await db.query(
-      `
-      SELECT * FROM transcripts WHERE studentid = ?
-      `,
+    const result = await db.query(
+      `SELECT * FROM transcripts WHERE studentid = $1`,
       [studentid]
     );
 
-    return NextResponse.json(rows, { status: 200 });
+    return NextResponse.json(result.rows, { status: 200 });
   } catch (err) {
     console.error('Database Error:', err);
     return NextResponse.json(

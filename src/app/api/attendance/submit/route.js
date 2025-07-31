@@ -1,37 +1,37 @@
-
 import db from '../../../../../lib/db';
 import { NextResponse } from 'next/server';
 
+export async function POST(request) {
+  const body = await request.json();
+  const { attendanceRecords } = body;
 
-export async function POST(request){
-   const body = await request.json();
+  try {
+    for (const record of attendanceRecords) {
+      const { studentid, courseid, date, status } = record;
 
-   const {attendanceRecords} = body;
+      const correctedDate = new Date(date);
+      correctedDate.setDate(correctedDate.getDate() + 1); // adjust timezone if needed
 
-
-   try{
-    for (const record of attendanceRecords){
-      const {studentid,courseid,date,status}=record;
-      const correcteddate = new Date(date);
-      correcteddate.setDate(correcteddate.getDate() + 1);
-        await db.query(
+      await db.query(
         `
-        INSERT INTO Attendance (studentid, courseid, date, status)
-        VALUES (?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE status = VALUES(status)
+        INSERT INTO attendance (studentid, courseid, date, status)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (studentid, courseid, date) DO UPDATE SET
+          status = EXCLUDED.status
         `,
-        [studentid, courseid, correcteddate, status]
+        [studentid, courseid, correctedDate, status]
       );
     }
 
-    return NextResponse.json({message:"Attendance submitted successfully ! "},{
-      status:200
-    });
-   }
-   catch(err){
-    console.error("Error Submitting Attendance ",err);
-    return NextResponse.json({error:"Server Error submitting attendance "},{
-      status:500
-    });
-   }
+    return NextResponse.json(
+      { message: 'Attendance submitted successfully!' },
+      { status: 200 }
+    );
+  } catch (err) {
+    console.error('Error submitting attendance:', err);
+    return NextResponse.json(
+      { error: 'Server error submitting attendance' },
+      { status: 500 }
+    );
+  }
 }

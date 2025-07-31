@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import db from '../../../../../../../lib/db'
+import db from '../../../../../../../lib/db';
+
 export async function GET(request, { params }) {
   const { studentid, courseid } = params;
 
@@ -11,16 +12,16 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       `
       SELECT midnumber, obtainedmarks, totalmarks
       FROM midterms
-      WHERE studentid = ? AND courseid = ?
+      WHERE studentid = $1 AND courseid = $2
       `,
       [studentid, courseid]
     );
 
-    return NextResponse.json(rows, { status: 200 });
+    return NextResponse.json(result.rows, { status: 200 });
   } catch (err) {
     console.error("Error fetching midterm marks:", err);
     return NextResponse.json(

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import db from '../../../../../lib/db'
+import db from '../../../../../lib/db';
 
 export async function POST(request) {
   try {
@@ -10,23 +10,19 @@ export async function POST(request) {
     }
 
     for (const record of midRecords) {
-      const { studentid, courseid, obtainedmarks, totalmarks, midnumber } = record;
+      const { studentid, courseid, midnumber, obtainedmarks, totalmarks } = record;
 
       if (!studentid || !courseid || !midnumber || isNaN(obtainedmarks) || isNaN(totalmarks)) {
-        return NextResponse.json(
-          { error: "Invalid record format" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid record format" }, { status: 400 });
       }
 
       await db.query(
         `
         INSERT INTO midterms (studentid, courseid, midnumber, obtainedmarks, totalmarks)
-        VALUES (?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE 
-          obtainedmarks = VALUES(obtainedmarks),
-          totalmarks = VALUES(totalmarks),
-          midnumber = VALUES(midnumber)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (studentid, courseid, midnumber) DO UPDATE SET
+          obtainedmarks = EXCLUDED.obtainedmarks,
+          totalmarks = EXCLUDED.totalmarks
         `,
         [studentid, courseid, midnumber, obtainedmarks, totalmarks]
       );
